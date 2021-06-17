@@ -6,41 +6,6 @@ import pandas
 import matplotlib.pyplot as plt
 from matplotlib import cm
 
-tensor = np.array([
-  [ [1., 1., 0.],
-    [1., 1., 0.],
-    [0., 0., 0.] ],
-  [ [0., 0., 0.],
-    [0., 1., 1.],
-    [0., 1., 1.] ],
-  [ [0.5, 0.5, 0.],
-    [0.5, 1., 0.5],
-    [0., 0.5, 0.5] ]
-])
-
-tensor1 = np.array([
-  [ 1., 1., 0.,
-    1., 1., 0.,
-    0., 0., 0. ],
-  [ 0., 0., 0.,
-    0., 1., 1.,
-    0., 1., 1. ],
-  [ 0.5, 0.5, 0.,
-    0.5, 1., 0.5,
-    0., 0.5, 0.5 ]
-])
-
-KoldaTensor = np.array(
-    [
-        [1.,0., 0.,1.],
-        [0.,1.,-1.,0.]
-    ]
-)
-
-default_way = "C:\\Users\\Tatiana\\Desktop\\ToBazhenov\\VD_DOM_Permafrost\\"
-txt = '.txt'
-
-
 def create_Dk(ck):
     '''
     Create diagonal matrix from a vector
