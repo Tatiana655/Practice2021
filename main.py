@@ -31,7 +31,7 @@ def my_parafac(tensor,rank,eps,B,C):
         A, B, C: matrix of loadings
     '''
     iter = 0
-# стоит ещё проверки добавить на входные данные
+# стоит ещё проверки добавить на входные данные, а так вроде работает
     if tensor is None:
         return None
     I = len(tensor[0])
