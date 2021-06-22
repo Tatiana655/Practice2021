@@ -21,7 +21,7 @@ def create_Dk(ck):
 def my_parafac(tensor,rank,eps,B,C, non_negative=False):
     '''
     Calculate PARAFAC decomposition
-Предназначен для матриц небольших размеров, на реальных данных лучше из коробки взять
+    Предназначен для матриц небольших размеров, на реальных данных лучше из коробки взять
     :param tensor: 3-way array
     :param rank: count of component
     :param eps: accuracy
@@ -40,16 +40,19 @@ def my_parafac(tensor,rank,eps,B,C, non_negative=False):
     K = len(tensor)
 
     while (True):
-        Z = np.zeros((I, rank))
-        for i in range(K):
+        if iter > 100:
+            break
+        Z = np.dot(tensor[0], B).dot(create_Dk(C[0]))
+        for i in range(1,K,1):
             Z = Z + np.dot(tensor[i], B).dot(create_Dk(C[i]))
 
         A = Z.dot(np.linalg.inv(np.multiply(C.transpose().dot(C), B.transpose().dot(B))))
         if non_negative == True:
             A = np.fabs(A)
-
-        if (scipy.linalg.norm(tl.unfold(tensor, 1) - np.dot(A, np.transpose(scipy.linalg.khatri_rao(C, B))),
-                              ord='fro') < eps):
+        err = scipy.linalg.norm(tl.unfold(tensor, 1) - np.dot(A, np.transpose(scipy.linalg.khatri_rao(C, B))),
+                              ord='fro')
+        print(err)
+        if ( err < eps):
             #table_data.append([eps, iter])
             return iter, A, B, C
         iter += 1
