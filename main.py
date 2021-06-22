@@ -21,6 +21,7 @@ def create_Dk(ck):
 def my_parafac(tensor,rank,eps,B,C, non_negative=False):
     '''
     Calculate PARAFAC decomposition
+Предназначен для матриц небольших размеров, на реальных данных лучше из коробки взять
     :param tensor: 3-way array
     :param rank: count of component
     :param eps: accuracy
@@ -40,7 +41,7 @@ def my_parafac(tensor,rank,eps,B,C, non_negative=False):
 
     while (True):
         Z = np.zeros((I, rank))
-        for i in range(I):
+        for i in range(K):
             Z = Z + np.dot(tensor[i], B).dot(create_Dk(C[i]))
 
         A = Z.dot(np.linalg.inv(np.multiply(C.transpose().dot(C), B.transpose().dot(B))))
@@ -53,7 +54,7 @@ def my_parafac(tensor,rank,eps,B,C, non_negative=False):
             return iter, A, B, C
         iter += 1
         Z = np.zeros((J, rank))
-        for i in range(J):
+        for i in range(K):
             Z = Z + np.dot(np.transpose(tensor[i]).dot(A), create_Dk(C[i]))
 
         B = Z.dot(np.linalg.inv(np.multiply(C.transpose().dot(C), A.transpose().dot(A))))
