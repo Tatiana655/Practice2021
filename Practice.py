@@ -13,15 +13,16 @@ def create_Dk(ck):
     :return:
         Dk: 2-way matrix (rank,rank)
     '''
-    Dk = np.zeros((2,2))
-    for i in range(2):
+    Dk = np.zeros((len(ck),len(ck)))
+    for i in range(len(ck)):
         Dk[i][i] = ck[i]
     return Dk
 
 def my_parafac(tensor,rank,eps,B,C, non_negative=False):
     '''
     Calculate PARAFAC decomposition
-    Предназначен для матриц небольших размеров, на реальных данных лучше из коробки взять
+    Предназначен для матриц небольших размеров, на реальных данных лучше из коробки взять. 
+    Он быстрее и там ещё куча всяких других штук
     :param tensor: 3-way array
     :param rank: count of component
     :param eps: accuracy
