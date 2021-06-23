@@ -18,17 +18,15 @@ def create_Dk(ck):
         Dk[i][i] = ck[i]
     return Dk
 
-def my_parafac(tensor,rank,eps,B,C, non_negative=False):
+def my_parafac(tensor,rank,eps,B,C):
     '''
     Calculate PARAFAC decomposition
-    Предназначен для матриц небольших размеров, на реальных данных лучше из коробки взять. 
-    Он быстрее и там ещё куча всяких других штук
+    На реальных данных лучше из коробки взять
     :param tensor: 3-way array
     :param rank: count of component
     :param eps: accuracy
     :param B: second matrix of loadings
     :param C: third matrix of loadings
-    #non_negative in process
     :return:
         iter: number of iterations
         A, B, C: matrix of loadings
@@ -40,7 +38,7 @@ def my_parafac(tensor,rank,eps,B,C, non_negative=False):
     I = len(tensor[0])
     J = len(tensor[0][0])
     K = len(tensor)
-
+    print(rank)
     while (True):
         if iter > 100:
             break
@@ -49,8 +47,6 @@ def my_parafac(tensor,rank,eps,B,C, non_negative=False):
             Z = Z + np.dot(tensor[i], B).dot(create_Dk(C[i]))
 
         A = Z.dot(np.linalg.inv(np.multiply(C.transpose().dot(C), B.transpose().dot(B))))
-        if non_negative == True:
-            A = np.fabs(A)
         err = scipy.linalg.norm(tl.unfold(tensor, 1) - np.dot(A, np.transpose(scipy.linalg.khatri_rao(C, B))),
                               ord='fro')
         print(err)
@@ -63,14 +59,10 @@ def my_parafac(tensor,rank,eps,B,C, non_negative=False):
             Z = Z + np.dot(np.transpose(tensor[i]).dot(A), create_Dk(C[i]))
 
         B = Z.dot(np.linalg.inv(np.multiply(C.transpose().dot(C), A.transpose().dot(A))))
-        if non_negative == True:
-            B = np.fabs(B)
         for i in range(K):
             tmp1 = np.linalg.inv(np.multiply(B.transpose().dot(B), A.transpose().dot(A)))
             tmp2 = np.dot(np.transpose(A).dot(tensor[i]), B)
             C[i] = np.transpose(np.dot(tmp1.dot(np.multiply(tmp2, np.eye(rank))), np.transpose(np.array([np.ones(rank)]))))
-        if non_negative == True:
-                C = np.fabs(C)
 
 def read_file(name):
     '''
