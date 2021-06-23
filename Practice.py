@@ -21,7 +21,7 @@ def create_Dk(ck):
 def my_parafac(tensor,rank,eps,B,C):
     '''
     Calculate PARAFAC decomposition
-    На реальных данных лучше из коробки взять
+    Для реальных данных лучше из коробки взять
     :param tensor: 3-way array
     :param rank: count of component
     :param eps: accuracy
