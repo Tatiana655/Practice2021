@@ -28,6 +28,7 @@ def my_parafac(tensor,rank,eps,B,C, non_negative=False):
     :param eps: accuracy
     :param B: second matrix of loadings
     :param C: third matrix of loadings
+    #non_negative in process
     :return:
         iter: number of iterations
         A, B, C: matrix of loadings
