@@ -89,6 +89,18 @@ def read_file(name):
     data = [[float(data[i][j]) for i in range(len(data)-1)] for j in range(len(data[0]))]
     return np.array(x_ax), np.array(y_ax), np.array(data)
 
+
+
+def read_tensor(folder_path):
+    all_files = glob.glob(folder_path + "*" + txt)  # os.listdir(default_way)
+    names = all_files
+    print(names)
+    tensor_data = []
+    for j in range(len(names)):
+        g = read_file(names[j])
+        tensor_data.append(g[2])
+    return g[0],g[1],tensor_data
+
 def NanLine(tuple_matrix, line_width, coef_line, mode = 'zero'):
     '''
     remove Relays lines from data
@@ -103,7 +115,7 @@ def NanLine(tuple_matrix, line_width, coef_line, mode = 'zero'):
     z = tuple_matrix[2]
     scale = (x[1] - x[0])//(y[1] - y[0]) # масштаб между осями
     for i in range(len(x)):
-        const = np.where(y == coef_line * x[0])
+        const = np.where(y == int(coef_line * x[0]))
         b1 = int(const[0] + scale * i * coef_line - line_width)
         if (b1 < 0):
             b1 =0
@@ -114,15 +126,122 @@ def NanLine(tuple_matrix, line_width, coef_line, mode = 'zero'):
             if (mode == "zero"):
                 z[i][b1:b2] = 0
             else:
-                z1 = 0.
-                z2 = 0.
-                if (b2 < len(y)-2):
-                    z2 = np.mean([z[i][b2], z[i][b2+1], z[i][b2+2]])
-                if (b1 > 2):
-                    z1 = np.mean([z[i][b1-3], z[i][b1-1], z[i][b1-2]])
-                k = -(z1-z2)/(b2-b1)
-                b = z2 - k*b2
-                for h in range(b2-b1):
-                    z[i][b1 + h] = k*(b1 + h)+b
+                if (mode == "Inf"):
+                    z[i][b1:b2] = np.Infinity
+                else:
+                    z[i] = grease_line(z[i],b1,b2-1)
     return x,y,z
 
+def grease_line(line ,b1,b2):
+    z1 = 0.
+    z2 = 0.
+    # b1 = ind[0]
+    # b2 = ind[len(ind)-1]
+    if (b2 < len(line) - 3):
+        z2 = np.mean([line[b2 + 3], line[b2 + 1], line[b2 + 2]])
+    if (b1 > 2):
+        z1 = np.mean([line[b1 - 3], line[b1 - 1], line[b1 - 2]])
+    k = -(z1 - z2) / (b2 - b1+1)
+    b = z2 - k * b2
+    for h in range(b2 - b1+1):
+        line[b1 + h] = k * (b1 + h) + b
+    return line
+
+def fill_nan(tuple_matrix):
+    x = tuple_matrix[0]
+    y = tuple_matrix[1]
+    z = tuple_matrix[2]
+    for i in range(len(z)):
+        ind = np.where(z[i] == np.Infinity)[0]
+        if (len(ind)  == 0):
+            break
+        #найти разделитель, если он есть и в зависимости от этого убирать по разным средним
+        dif_array = [(ind[i+1]-ind[i]) for i in range(len(ind)-1)]
+        if (len(dif_array)==0):
+            z[i][ind[0]] =  z[i][ind[0]-1]
+            break
+        max_dif = max(dif_array)
+        ind_max_dif = np.where(dif_array == max_dif)[0][0]
+        if (max_dif <= 5): # смазались
+            z[i] = grease_line(z[i],ind[0],ind[len(ind)-1])
+        else: #разделены
+            z[i] = grease_line(z[i], int(ind[0]), int(ind[ind_max_dif]))
+            z[i] = grease_line(z[i], int(ind[ind_max_dif+1]), int(ind[len(ind)-1]))
+    return x,y,z
+
+def erase_Reyleigh(data, width1, width2, mode="nzero"):
+    x = data[0]
+    y = data[1]
+    tensor_data = data[2]
+    for i in range(len(tensor_data)):
+        x,y,tensor_data[i] = NanLine((x,y,tensor_data[i]),width1,1,mode)
+        x,y,tensor_data[i] = NanLine((x,y,tensor_data[i]),width2,2,mode)
+    return x,y,tensor_data
+
+def erase_Reyleigh_Raman(data, width1, width2, width1_12, width2_2):
+    x = data[0]
+    y = data[1]
+    tensor_data = data[2]
+    for i in range(len(tensor_data)):
+        x, y, tensor_data[i] = NanLine((x, y, tensor_data[i]), width1, 1, "Inf")
+        x, y, tensor_data[i] = NanLine((x, y, tensor_data[i]), width1_12, 1.12, "Inf")
+        x, y, tensor_data[i] = fill_nan((x,y,tensor_data[i]))
+
+        x, y, tensor_data[i] = NanLine((x, y, tensor_data[i]), width2, 2, "Inf")
+        x, y, tensor_data[i] = NanLine((x, y, tensor_data[i]), width2_2, 2.2, "Inf")
+        x, y, tensor_data[i] = fill_nan((x, y, tensor_data[i]))
+    return x, y, tensor_data
+
+def show_data(data,h,w,title = "DATA",num1=-1, num2=-1,names = None):
+    x = data[0]
+    y = data[1]
+    tensor_data = data[2]
+    if num1 == -1:
+        num1 = 0
+    if num2 == -1:
+        num2 = len(tensor_data)-1
+    fig = plt.figure(figsize=(3, 3))
+    for j in range(num2-num1+1):
+        ax = fig.add_subplot(h, w, j + 1)  # расположения окон
+        X, Y = np.meshgrid(x, y)
+        if names is not None:
+            ax.set_title(names[j])
+        cs = ax.contourf(X, Y, np.transpose(tensor_data[num1+j]), levels=100, cmap=cm.coolwarm)
+        fig.colorbar(cs)
+    plt.suptitle(title)
+    plt.show()
+
+def show_loadings(data,rank,tol= 1e-6,iter_max = 1000):
+    x = data[0]
+    y = data[1]
+    tensor_data = data[2]
+    print("in process...")
+    model = decomp.non_negative_parafac(tensor_data, rank, iter_max, tol=tol)
+    fig = plt.figure(figsize=(8, 9))
+    plt.suptitle("Rank = " + str(rank), fontsize=18, ha="center")
+    ax = fig.add_subplot(3, 1, 3)
+    ax.grid()
+    ax.plot(np.linspace(1, len(tensor_data) - 1, len(tensor_data) - 1, endpoint=True), model[1][0])
+
+    ax1 = fig.add_subplot(3, 1, 1)
+    ax1.grid()
+    ax1.plot(x, model[1][1])
+
+    ax2 = fig.add_subplot(3, 1, 2)
+    ax2.grid()
+    ax2.plot(y, model[1][2])
+    plt.show()
+
+def show_components(data,h,w,rank,title = "COMPONENTS",tol= 1e-6,iter_max = 1000):
+    x = data[0]
+    y = data[1]
+    tensor_data = data[2]
+    print("in process...")
+    model = decomp.non_negative_parafac(tensor_data, rank, iter_max, tol=tol)
+    fig = plt.figure(figsize=(8, 5))
+    for i in range(rank):
+        ax2 = fig.add_subplot(h, w, i + 1)
+        mat = np.outer(np.transpose(model[1][1])[i], np.transpose(model[1][2])[i])
+        plt.contourf(x, y, np.transpose(mat), levels=100, cmap=cm.coolwarm)
+    plt.suptitle(title)
+    plt.show()
