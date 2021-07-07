@@ -226,7 +226,7 @@ def erase_Rayleigh(data, width1, width2, mode="nzero"):
         x,y,tensor_data[i] = NanLine((x,y,tensor_data[i]),width2,2,mode)
     return x,y,tensor_data
 
-def erase_Reyleigh_Raman(data, width1, width2, width1_12, width2_2):
+def erase_Rayleigh_Raman(data, width1, width2, width1_12, width2_2):
     '''
     Erase Reyleigh & Raman peaks from data tensor
     :param data: tensor (+ex +em)
