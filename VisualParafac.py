@@ -142,6 +142,8 @@ def grease_line(line,b1,b2):
         z2 = np.mean([line[b2 + 3], line[b2 + 1], line[b2 + 2]])
     if (b1 > 2):
         z1 = np.mean([line[b1 - 3], line[b1 - 1], line[b1 - 2]])
+    if (b2 - b1 +1 == 0):
+        print(b1,b2)
     k = -(z1 - z2) / (b2 - b1+1)
     b = z2 - k * b2
     for h in range(b2 - b1+1):
@@ -207,7 +209,7 @@ def read_tensor(folder_path):
         tensor_data.append(g[2])
     return g[0],g[1],tensor_data
 
-def erase_Reyleigh(data, width1, width2, mode="nzero"):
+def erase_Rayleigh(data, width1, width2, mode="nzero"):
     '''
     Erase Reyleigh peaks from data tensor
     :param data: reading tensor (+em +ex)
